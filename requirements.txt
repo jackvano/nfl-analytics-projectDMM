@@ -2,5 +2,5 @@ nflreadpy
 pandas
 pyarrow
 sqlalchemy
-psycopg[binary]
+psycopg2-binary
 python-dotenv

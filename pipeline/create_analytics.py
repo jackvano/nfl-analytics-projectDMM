@@ -67,17 +67,25 @@ GROUP BY pfr_player_id, season, team, position
 
 ("dim_team_season", """
 CREATE OR REPLACE VIEW analytics.dim_team_season AS
-SELECT DISTINCT home_team AS team, season,
-    NULL::FLOAT AS srs, NULL::FLOAT AS osrs, NULL::FLOAT AS dsrs
-FROM raw.schedules WHERE season IS NOT NULL
-UNION
-SELECT DISTINCT away_team AS team, season,
-    NULL::FLOAT AS srs, NULL::FLOAT AS osrs, NULL::FLOAT AS dsrs
-FROM raw.schedules WHERE season IS NOT NULL
+SELECT DISTINCT
+    s.team,
+    s.season,
+    r.srs,
+    r.osrs,
+    r.dsrs
+FROM (
+    SELECT home_team AS team, season FROM raw.schedules WHERE season IS NOT NULL
+    UNION
+    SELECT away_team AS team, season FROM raw.schedules WHERE season IS NOT NULL
+) s
+LEFT JOIN raw.pfr_ratings r
+    ON s.team = r.team AND s.season = r.season
 """),
 
 ("fact_player_season", """
-CREATE OR REPLACE VIEW analytics.fact_player_season AS
+DROP VIEW IF EXISTS analytics.fact_player_season CASCADE;
+DROP TABLE IF EXISTS analytics.fact_player_season CASCADE;
+CREATE TABLE analytics.fact_player_season AS
 WITH active_contract AS (
     SELECT DISTINCT ON (gsis_id, s.season)
         gsis_id,

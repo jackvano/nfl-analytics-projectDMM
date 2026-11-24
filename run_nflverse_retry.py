@@ -33,4 +33,4 @@ def load(name, loader):
 
 load("pbp", lambda: nfl.load_pbp(SEASONS))
 load("depth_charts", lambda: nfl.load_depth_charts(SEASONS))
-print("Done.")
+print("Done")

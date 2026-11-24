@@ -4,7 +4,7 @@ from pipeline.db import engine
 
 PFR_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "pfr")
 
-TEAM_NAME_TO_ABB = {
+TEAM_NAMES = {
     "Arizona Cardinals": "ARI", "Atlanta Falcons": "ATL", "Baltimore Ravens": "BAL",
     "Buffalo Bills": "BUF", "Carolina Panthers": "CAR", "Chicago Bears": "CHI",
     "Cincinnati Bengals": "CIN", "Cleveland Browns": "CLE", "Dallas Cowboys": "DAL",
@@ -18,23 +18,20 @@ TEAM_NAME_TO_ABB = {
     "Tennessee Titans": "TEN", "Washington Commanders": "WAS",
 }
 
-TABLES = {
-    "pfr_ratings": "ratings.csv",
-}
+TABLES = {"pfr_ratings": "ratings.csv"}
 
 def run():
     for table_name, filename in TABLES.items():
         path = os.path.join(PFR_DIR, filename)
         if not os.path.exists(path):
-            print(f"  raw.{table_name} SKIPPED (no file at data/pfr/{filename})")
+            print(f"  raw.{table_name} SKIPPED (missing data/pfr/{filename})")
             continue
         try:
             df = pd.read_csv(path)
             if "team" in df.columns and df["team"].str.contains(" ").any():
                 df["team"] = df["team"].str.replace(r"[*+]", "", regex=True).str.strip()
-                df["team"] = df["team"].map(TEAM_NAME_TO_ABB).fillna(df["team"])
-            df.to_sql(table_name, engine, schema="raw", if_exists="replace",
-                      index=False, chunksize=50_000)
+                df["team"] = df["team"].map(TEAM_NAMES).fillna(df["team"])
+            df.to_sql(table_name, engine, schema="raw", if_exists="replace", index=False, chunksize=50_000)
             print(f"  raw.{table_name}: {len(df):,} rows")
         except Exception as e:
             print(f"  raw.{table_name} FAILED: {e}")

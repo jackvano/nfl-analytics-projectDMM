@@ -1,4 +1,4 @@
 from pipeline import load_kaggle
-print("=== Kaggle (Big Data Bowl) ===")
+print("Kaggle BDB")
 load_kaggle.run()
-print("Done.")
+print("Done")
